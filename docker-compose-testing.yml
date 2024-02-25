@@ -1,0 +1,43 @@
+services:
+    traefik:
+        image: traefik:2.11
+        command:
+            --providers.docker=true
+            --providers.docker.exposedByDefault=false
+            --entryPoints.http.address=:80
+        networks:
+            - traefik-public
+        ports:
+            - "80:80"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=traefik-public
+
+    app:
+        image: ${REGISTRY}/app:${IMAGE_TAG}
+        networks:
+            - traefik-public
+            - default
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=traefik-public
+            - traefik.http.routers.app.rule=Host(`localhost`)
+            - traefik.http.routers.app.entryPoints=http
+            - traefik.http.services.app.loadBalancer.server.port=80
+
+    app-php-fpm:
+        image: ${REGISTRY}/app-php-fpm:${IMAGE_TAG}
+        environment:
+            APP_ENV: prod
+            APP_SECRET: secret
+            DATABASE_URL: sqlite:////app/data/database.sqlite
+
+    benchmark:
+        image: ${REGISTRY}/benchmark:${IMAGE_TAG}
+        network_mode: service:traefik
+
+networks:
+    traefik-public:
+        name: traefik-public
