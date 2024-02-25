@@ -1,0 +1,142 @@
+services:
+    traefik:
+        image: traefik:2.11
+        command:
+            --providers.docker=true
+            --providers.docker.exposedByDefault=false
+            --entryPoints.http.address=:80
+        ports:
+            - "80:80"
+        networks:
+            - traefik-public
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=traefik-public
+
+    app:
+        build:
+            context: app/docker
+            dockerfile: development/nginx/Dockerfile
+        volumes:
+            - ./app:/app
+        networks:
+            - traefik-public
+            - default
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=traefik-public
+            - traefik.http.routers.app.rule=Host(`localhost`)
+            - traefik.http.routers.app.entryPoints=http
+            - traefik.http.services.app.loadBalancer.server.port=80
+
+    app-php-fpm:
+        build:
+            context: app/docker
+            dockerfile: development/php-fpm/Dockerfile
+        environment:
+            APP_ENV: dev
+            APP_DEBUG: 1
+            DB_HOST: app-postgres
+            DB_USER: app
+            DB_PASSWORD_FILE: /run/secrets/app_db_password
+            DB_NAME: app
+            MAILER_HOST: mailer
+            MAILER_PORT: 1025
+            MAILER_USERNAME: app
+            MAILER_PASSWORD_FILE: /run/secrets/app_mailer_password
+            MAILER_FROM_EMAIL: mail@app.test
+            FRONTEND_URL: http://localhost
+            SENTRY_DSN_FILE: /run/secrets/sentry_dsn
+            JWT_ENCRYPTION_KEY_FILE: /run/secrets/jwt_encryption_key
+            JWT_PUBLIC_KEY_PATH: /run/secrets/jwt_public_key
+            JWT_PRIVATE_KEY_PATH: /run/secrets/jwt_private_key
+        volumes:
+            - ./app:/app
+        secrets:
+            - app_db_password
+            - app_mailer_password
+            - sentry_dsn
+            - jwt_encryption_key
+            - jwt_public_key
+            - jwt_private_key
+
+    app-php-cli:
+        build:
+            context: app/docker
+            dockerfile: development/php-cli/Dockerfile
+        environment:
+            APP_ENV: dev
+            APP_DEBUG: 1
+            DB_HOST: app-postgres
+            DB_USER: app
+            DB_PASSWORD_FILE: /run/secrets/app_db_password
+            DB_NAME: app
+            MAILER_HOST: mailer
+            MAILER_PORT: 1025
+            MAILER_USERNAME: app
+            MAILER_PASSWORD_FILE: /run/secrets/app_mailer_password
+            MAILER_FROM_EMAIL: mail@app.test
+            FRONTEND_URL: http://localhost
+            SENTRY_DSN_FILE: /run/secrets/sentry_dsn
+            JWT_ENCRYPTION_KEY_FILE: /run/secrets/jwt_encryption_key
+            JWT_PUBLIC_KEY_PATH: /run/secrets/jwt_public_key
+            JWT_PRIVATE_KEY_PATH: /run/secrets/jwt_private_key
+        volumes:
+            - ./app:/app
+        secrets:
+            - app_db_password
+            - app_mailer_password
+            - sentry_dsn
+            - jwt_encryption_key
+            - jwt_public_key
+            - jwt_private_key
+
+    app-postgres:
+        image: postgres:16.2-alpine
+        environment:
+            POSTGRES_USER: app
+            POSTGRES_PASSWORD_FILE: /run/secrets/app_db_password
+            POSTGRES_DB: app
+        secrets:
+            - app_db_password
+        volumes:
+            - app-postgres:/var/lib/postgresql/data
+        ports:
+            - "54321:5432"
+
+    mailer:
+        image: mailhog/mailhog
+        networks:
+            - traefik-public
+            - default
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=traefik-public
+            - traefik.http.routers.mailer.rule=Host(`mailer.localhost`)
+            - traefik.http.routers.mailer.entryPoints=http
+            - traefik.http.services.mailer.loadBalancer.server.port=8025
+
+secrets:
+    app_db_password:
+        file: ./app/docker/development/secrets/app_db_password
+    app_mailer_password:
+        file: ./app/docker/development/secrets/app_mailer_password
+    sentry_dsn:
+        file: ./app/docker/development/secrets/sentry_dsn
+    jwt_encryption_key:
+        file: ./app/docker/development/secrets/jwt_encryption_key
+    jwt_public_key:
+        file: ./app/docker/development/secrets/jwt_public_key
+    jwt_private_key:
+        file: ./app/docker/development/secrets/jwt_private_key
+    backup_aws_secret_access_key:
+        file: ./app/docker/development/secrets/backup_aws_secret_access_key
+
+volumes:
+    app-postgres:
+
+networks:
+    traefik-public:
+        name: traefik-public

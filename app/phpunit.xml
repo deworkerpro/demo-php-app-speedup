@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         executionOrder="depends,defects"
+         beStrictAboutOutputDuringTests="true"
+         cacheDirectory="var/cache/.phpunit.cache"
+>
+    <testsuites>
+        <testsuite name="unit">
+            <directory>src/Auth/Test</directory>
+            <directory>src/FeatureToggle/Test</directory>
+            <directory>src/Frontend/Test</directory>
+            <directory>src/Http/Test</directory>
+            <directory>src/OAuth/Test</directory>
+            <directory>src/Router/Test</directory>
+            <directory>src/Serializer/Test</directory>
+            <directory>src/Translator/Test</directory>
+            <directory>src/Validator/Test</directory>
+        </testsuite>
+        <testsuite name="functional">
+            <directory>tests/Functional</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+        <exclude>
+            <directory>src/Auth/Test</directory>
+            <directory>src/FeatureToggle/Test</directory>
+            <directory>src/Frontend/Test</directory>
+            <directory>src/Http/Test</directory>
+            <directory>src/OAuth/Test</directory>
+            <directory>src/Router/Test</directory>
+            <directory>src/Serializer/Test</directory>
+            <directory>src/Translator/Test</directory>
+            <directory>src/Validator/Test</directory>
+        </exclude>
+    </source>
+    <php>
+        <env name="APP_ENV" value="test" force="true"/>
+        <env name="APP_DEBUG" value="1" force="true"/>
+    </php>
+</phpunit>
