@@ -45,8 +45,7 @@ app-ready:
 build: build-app
 
 build-app:
-	docker --log-level=debug build --pull --file=app/docker/production/nginx/Dockerfile --tag=${REGISTRY}/app:${IMAGE_TAG} app
-	docker --log-level=debug build --pull --file=app/docker/production/php-fpm/Dockerfile --tag=${REGISTRY}/app-php-fpm:${IMAGE_TAG} app
+	docker --log-level=debug build --pull --file=app/docker/production/php/Dockerfile --tag=${REGISTRY}/app:${IMAGE_TAG} app
 	docker --log-level=debug build --pull --file=app/docker/production/php-cli/Dockerfile --tag=${REGISTRY}/app-php-cli:${IMAGE_TAG} app
 
 try-build:

@@ -24,3 +24,7 @@
 ###< symfony/asset-mapper ###
 
 /.ready
+
+###> baldinof/roadrunner-bundle ###
+/bin/rr
+###< baldinof/roadrunner-bundle ###
