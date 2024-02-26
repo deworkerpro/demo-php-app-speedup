@@ -75,10 +75,13 @@ build-app:
 try-build:
 	REGISTRY=localhost IMAGE_TAG=0 make build
 
-testing-build: testing-build-testing-app-php-cli
+testing-build: testing-build-testing-app-php-cli testing-build-benchmark
 
 testing-build-testing-app-php-cli:
 	docker --log-level=debug build --pull --file=app/docker/testing/php-cli/Dockerfile --tag=${REGISTRY}/testing-app-php-cli:${IMAGE_TAG} app
+
+testing-build-benchmark:
+	docker --log-level=debug build --pull --file=benchmark/Dockerfile --tag=${REGISTRY}/benchmark:${IMAGE_TAG} benchmark
 
 testing-init:
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml up -d
@@ -87,16 +90,24 @@ testing-init:
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm testing-app-php-cli php bin/app.php fixtures:load --no-interaction
 	sleep 5
 
+testing-benchmark:
+	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 1 -d -r http://localhost/
+	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 100 -c 100 -d -r http://localhost/
+	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 100 -c 100 -d -r http://localhost/v1/blog
+
 testing-down-clear:
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml down -v --remove-orphans
 
-try-testing: try-build try-testing-build try-testing-init try-testing-down-clear
+try-testing: try-testing-down-clear try-build try-testing-build try-testing-init
 
 try-testing-build:
 	REGISTRY=localhost IMAGE_TAG=0 make testing-build
 
 try-testing-init:
 	REGISTRY=localhost IMAGE_TAG=0 make testing-init
+
+try-testing-benchmark:
+	REGISTRY=localhost IMAGE_TAG=0 make testing-benchmark
 
 try-testing-down-clear:
 	REGISTRY=localhost IMAGE_TAG=0 make testing-down-clear

@@ -120,6 +120,10 @@ services:
     mailer:
         image: mailhog/mailhog
 
+    benchmark:
+        image: ${REGISTRY}/benchmark:${IMAGE_TAG}
+        network_mode: service:traefik
+
 secrets:
     app_db_password:
         file: ./app/docker/development/secrets/app_db_password
