@@ -88,7 +88,8 @@ abstract class WebTestCase extends TestCase
 
     private function container(): ContainerInterface
     {
-        /** @var ContainerInterface */
-        return require __DIR__ . '/../../config/container.php';
+        $config = require __DIR__ . '/../../config/dependencies.php';
+
+        return (require __DIR__ . '/../../config/container.php')($config);
     }
 }

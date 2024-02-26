@@ -1,15 +1,12 @@
 FROM php:8.3-cli-alpine
 
-RUN apk add --no-cache postgresql-dev bash coreutils linux-headers \
+RUN apk add --no-cache postgresql-dev linux-headers \
     && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install pdo_pgsql sockets
 
 RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini
 
-COPY ./common/wait-for-it.sh /usr/local/bin/wait-for-it
-RUN chmod 555 /usr/local/bin/wait-for-it
-
-COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+COPY --from=ghcr.io/roadrunner-server/roadrunner:2023.3 /usr/bin/rr /usr/local/bin/rr
 
 RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
 

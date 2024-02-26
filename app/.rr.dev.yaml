@@ -1,0 +1,35 @@
+version: "3"
+
+server:
+  command: "php public/index.php"
+
+http:
+  address: 0.0.0.0:80
+  middleware: [ "static", "headers", "gzip" ]
+  pool:
+    debug: true
+  uploads:
+    forbid: [ ".php" ]
+  static:
+    dir: "public"
+    forbid: [ ".php" ]
+  raw_body: true
+  headers:
+    cors:
+      allowedOrigin: "*"
+      allowedHeaders: "Origin,Content-Type,Accept,Authorization,X-Features"
+      allowedMethods: "GET,POST,PUT,DELETE,HEAD,OPTIONS"
+      allowCredentials: true
+      exposedHeaders: "Cache-Control,Content-Language,Content-Type,Expires,Last-Modified,Pragma"
+      maxAge: 600
+
+logs:
+  mode: development
+  channels:
+    http:
+      level: debug # Log all http requests, set to info to disable
+    server:
+      level: info # Everything written to worker stderr is logged
+      mode: raw
+    metrics:
+      level: debug

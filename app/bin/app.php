@@ -3,7 +3,6 @@
 
 declare(strict_types=1);
 
-use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
 
@@ -15,8 +14,8 @@ if ($dsn = env('SENTRY_DSN')) {
     Sentry\init(['dsn' => $dsn]);
 }
 
-/** @var ContainerInterface $container */
-$container = require __DIR__ . '/../config/container.php';
+$config = require __DIR__ . '/../config/dependencies.php';
+$container = (require __DIR__ . '/../config/container.php')($config);
 
 $cli = new Application('Console');
 

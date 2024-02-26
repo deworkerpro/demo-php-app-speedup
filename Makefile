@@ -1,7 +1,8 @@
 init: docker-down-clear \
 	app-clear \
 	docker-pull docker-build docker-up \
-	app-init
+	app-init \
+	app-ready
 up: docker-up
 down: docker-down
 restart: docker-down docker-up
@@ -25,7 +26,7 @@ docker-build:
 	docker compose build --pull
 
 app-clear:
-	docker run --rm -v ${PWD}/app:/app -w /app alpine sh -c 'rm -rf var/cache/* var/log/* var/test/*'
+	docker run --rm -v ${PWD}/app:/app -w /app alpine sh -c 'rm -rf .ready var/cache/* var/log/* var/test/*'
 
 app-init: app-permissions app-composer-install app-wait-db app-migrations app-fixtures
 
@@ -46,6 +47,9 @@ app-migrations:
 
 app-fixtures:
 	docker compose run --rm app-php-cli composer app fixtures:load
+
+app-ready:
+	docker run --rm --volume ${PWD}/app:/app --workdir /app alpine touch .ready
 
 app-check: app-validate-schema app-lint app-analyze app-test
 
@@ -68,8 +72,7 @@ app-test:
 build: build-app
 
 build-app:
-	docker --log-level=debug build --pull --file=app/docker/production/nginx/Dockerfile --tag=${REGISTRY}/app:${IMAGE_TAG} app
-	docker --log-level=debug build --pull --file=app/docker/production/php-fpm/Dockerfile --tag=${REGISTRY}/app-php-fpm:${IMAGE_TAG} app
+	docker --log-level=debug build --pull --file=app/docker/production/php/Dockerfile --tag=${REGISTRY}/app:${IMAGE_TAG} app
 	docker --log-level=debug build --pull --file=app/docker/production/php-cli/Dockerfile --tag=${REGISTRY}/app-php-cli:${IMAGE_TAG} app
 
 try-build:
