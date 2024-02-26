@@ -47,6 +47,7 @@ COPY ./ ./
 
 RUN php bin/console assets:install public
 RUN php bin/console asset-map:compile
+RUN php bin/console cache:warmup
 
 RUN chown app:app ./var -R
 
