@@ -94,6 +94,7 @@ testing-benchmark:
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 1 -d -r http://localhost/
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 100 -c 100 -d -r http://localhost/
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 100 -c 100 -d -r http://localhost/v1/blog
+	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml exec app-php-fpm ls -a var/cache
 
 testing-down-clear:
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml down -v --remove-orphans
