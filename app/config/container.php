@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 use DI\ContainerBuilder;
+use Psr\Container\ContainerInterface;
 
-$builder = new ContainerBuilder();
+return static function (array $config): ContainerInterface {
+    $builder = new ContainerBuilder();
 
-$builder->addDefinitions(require __DIR__ . '/dependencies.php');
+    $builder->addDefinitions($config);
 
-return $builder->build();
+    return $builder->build();
+};
