@@ -26,6 +26,8 @@ RUN apk add --no-cache fcgi \
 
 RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
 
+COPY ./docker/production/php-fpm/conf.d /usr/local/etc/php/conf.d
+
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
