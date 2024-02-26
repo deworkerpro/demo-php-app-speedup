@@ -18,29 +18,23 @@ services:
     app:
         build:
             context: app/docker
-            dockerfile: development/nginx/Dockerfile
-        volumes:
-            - ./app:/app
-        networks:
-            - traefik-public
-            - default
-        labels:
-            - traefik.enable=true
-            - traefik.docker.network=traefik-public
-            - traefik.http.routers.app.rule=Host(`localhost`)
-            - traefik.http.routers.app.entryPoints=http
-            - traefik.http.services.app.loadBalancer.server.port=80
-
-    app-php-fpm:
-        build:
-            context: app/docker
-            dockerfile: development/php-fpm/Dockerfile
+            dockerfile: development/php/Dockerfile
         environment:
             APP_ENV: dev
             APP_SECRET: secret
             DATABASE_URL: sqlite:////app/data/database.sqlite
         volumes:
             - ./app:/app
+        networks:
+            - traefik-public
+            - default
+        command: sh -c "until [ -f .ready ] ; do sleep 1 ; done && rr serve -c .rr.dev.yaml --debug"
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=traefik-public
+            - traefik.http.routers.app.rule=Host(`localhost`)
+            - traefik.http.routers.app.entryPoints=http
+            - traefik.http.services.app.loadBalancer.server.port=80
 
     app-php-cli:
         build:

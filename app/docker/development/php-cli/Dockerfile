@@ -1,7 +1,8 @@
 FROM php:8.3-cli-alpine
 
-RUN apk add --no-cache bash coreutils nodejs npm \
-    && npm install -g sass
+RUN apk add --no-cache bash coreutils linux-headers nodejs npm \
+    && npm install -g sass \
+    && docker-php-ext-install sockets
 
 RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini
 

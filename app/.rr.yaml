@@ -1,0 +1,49 @@
+version: "3"
+
+server:
+  command: "php public/index.php"
+  env:
+    - APP_RUNTIME: Baldinof\RoadRunnerBundle\Runtime\Runtime
+
+http:
+  address: 0.0.0.0:80
+  middleware: [ "static", "headers", "gzip" ]
+  pool:
+    debug: false
+  uploads:
+    forbid: [ ".php" ]
+  static:
+    dir: "public"
+    forbid: [ ".php" ]
+  raw_body: true
+  headers:
+    cors:
+      allowedOrigin: "*"
+      allowedHeaders: "Origin,Content-Type,Accept,Authorization,X-Features"
+      allowedMethods: "GET,POST,PUT,DELETE,HEAD,OPTIONS"
+      allowCredentials: true
+      exposedHeaders: "Cache-Control,Content-Language,Content-Type,Expires,Last-Modified,Pragma"
+      maxAge: 600
+
+logs:
+  mode: production
+  channels:
+    http:
+      level: debug # Log all http requests, set to info to disable
+    server:
+      level: info # Everything written to worker stderr is logged
+      mode: raw
+    metrics:
+      level: error
+
+status:
+  address: 127.0.0.1:2114
+
+# Uncomment to use metrics integration
+# rpc:
+#   listen: tcp://127.0.0.1:6001
+
+# Uncomment to use metrics integration
+# metrics:
+#   # prometheus client address (path /metrics added automatically)
+#   address: "0.0.0.0:9180"

@@ -1,7 +1,8 @@
 FROM php:8.3-cli-alpine AS builder
 
-RUN apk add --no-cache nodejs npm \
-    && npm install -g sass
+RUN apk add --no-cache linux-headers nodejs npm \
+    && npm install -g sass \
+    && docker-php-ext-install sockets
 
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
@@ -22,7 +23,8 @@ RUN php bin/console sass:build
 
 FROM php:8.3-cli-alpine
 
-RUN docker-php-ext-install opcache
+RUN apk add --no-cache linux-headers \
+    && docker-php-ext-install sockets opcache
 
 RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
 

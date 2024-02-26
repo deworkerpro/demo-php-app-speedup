@@ -1,6 +1,8 @@
 FROM php:8.3-cli-alpine AS builder
 
-RUN apk add --no-cache nodejs npm && npm install -g sass
+RUN apk add --no-cache linux-headers nodejs npm \
+    && npm install -g sass \
+    && docker-php-ext-install sockets
 
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
@@ -19,18 +21,23 @@ RUN php bin/console sass:build
 
 ### FPM ###
 
-FROM php:8.3-fpm-alpine
+FROM php:8.3-cli-alpine
 
-RUN apk add --no-cache fcgi \
-    && docker-php-ext-install opcache
+RUN apk add --no-cache linux-headers \
+    && docker-php-ext-install opcache sockets
 
 RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
 
-COPY ./docker/production/php-fpm/conf.d /usr/local/etc/php/conf.d
+COPY ./docker/production/php/conf.d /usr/local/etc/php/conf.d
 
 ENV COMPOSER_ALLOW_SUPERUSER 1
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+COPY --from=ghcr.io/roadrunner-server/roadrunner:2023.3 /usr/bin/rr /usr/local/bin/rr
+
+CMD ["rr", "serve"]
+
+RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
 
 WORKDIR /app
 
@@ -48,6 +55,6 @@ RUN php bin/console cache:warmup
 
 RUN chown www-data:www-data ./var -R
 
-HEALTHCHECK --interval=5s --timeout=3s --start-period=1s \
-    CMD REDIRECT_STATUS=true SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET \
-    cgi-fcgi -bind -connect 127.0.0.1:9000 || exit 1
+USER app
+
+HEALTHCHECK --interval=5s --timeout=3s --start-period=5s CMD curl --fail http://127.0.0.1:2114/health?plugin=http || exit 1

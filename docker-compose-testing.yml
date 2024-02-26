@@ -17,6 +17,10 @@ services:
 
     app:
         image: ${REGISTRY}/app:${IMAGE_TAG}
+        environment:
+            APP_ENV: prod
+            APP_SECRET: secret
+            DATABASE_URL: sqlite:////app/data/database.sqlite
         networks:
             - traefik-public
             - default
@@ -26,13 +30,6 @@ services:
             - traefik.http.routers.app.rule=Host(`localhost`)
             - traefik.http.routers.app.entryPoints=http
             - traefik.http.services.app.loadBalancer.server.port=80
-
-    app-php-fpm:
-        image: ${REGISTRY}/app-php-fpm:${IMAGE_TAG}
-        environment:
-            APP_ENV: prod
-            APP_SECRET: secret
-            DATABASE_URL: sqlite:////app/data/database.sqlite
 
     benchmark:
         image: ${REGISTRY}/benchmark:${IMAGE_TAG}

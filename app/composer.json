@@ -15,6 +15,7 @@
     "require": {
         "php": ">=8.2",
         "ext-pdo_sqlite": "*",
+        "baldinof/roadrunner-bundle": "^3.0",
         "doctrine/dbal": "^4.0",
         "doctrine/doctrine-bundle": "^2.11",
         "doctrine/doctrine-migrations-bundle": "^3.3",
