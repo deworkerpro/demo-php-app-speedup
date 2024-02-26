@@ -1,8 +1,8 @@
 FROM php:8.3-cli-alpine
 
-RUN apk add --no-cache postgresql-dev bash coreutils linux-headers \
+RUN apk add --no-cache postgresql-dev bash coreutils \
     && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
-    && docker-php-ext-install pdo_pgsql sockets
+    && docker-php-ext-install pdo_pgsql
 
 RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini
 
