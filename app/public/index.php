@@ -1,21 +1,9 @@
 <?php
 
-declare(strict_types=1);
+use App\Kernel;
 
-use Psr\Container\ContainerInterface;
+require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
 
-use function App\env;
-
-http_response_code(500);
-
-require __DIR__ . '/../vendor/autoload.php';
-
-if ($dsn = env('SENTRY_DSN')) {
-    Sentry\init(['dsn' => $dsn]);
-}
-
-/** @var ContainerInterface $container */
-$container = require __DIR__ . '/../config/container.php';
-
-$app = (require __DIR__ . '/../config/app.php')($container);
-$app->run();
+return function (array $context) {
+    return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
+};

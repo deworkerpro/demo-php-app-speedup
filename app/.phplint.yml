@@ -1,8 +1,0 @@
-path: ./
-jobs: 10
-cache: var/cache/.phplint.json
-extensions:
-    - php
-exclude:
-    - vendor
-    - var

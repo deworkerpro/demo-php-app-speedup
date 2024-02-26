@@ -2,4 +2,5 @@
 /vendor
 /var/cache/*
 /var/log/*
-/var/test/*
+/var/sass
+/.ready

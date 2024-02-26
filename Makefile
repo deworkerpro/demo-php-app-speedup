@@ -1,7 +1,8 @@
 init: docker-down-clear \
 	app-clear \
 	docker-pull docker-build docker-up \
-	app-init
+	app-init \
+	app-ready
 up: docker-up
 down: docker-down
 restart: docker-down docker-up
@@ -25,12 +26,12 @@ docker-build:
 	docker compose build --pull
 
 app-clear:
-	docker run --rm -v ${PWD}/app:/app -w /app alpine sh -c 'rm -rf var/cache/* var/log/* var/test/*'
+	docker run --rm -v ${PWD}/app:/app -w /app alpine sh -c 'rm -rf .ready var/cache/* var/log/* var/test/*'
 
-app-init: app-permissions app-composer-install app-wait-db app-migrations app-fixtures
+app-init: app-permissions app-composer-install
 
 app-permissions:
-	docker run --rm -v ${PWD}/app:/app -w /app alpine chmod 777 var/cache var/log var/test
+	docker run --rm -v ${PWD}/app:/app -w /app alpine chmod 777 var var/log
 
 app-composer-install:
 	docker compose run --rm app-php-cli composer install
@@ -38,32 +39,8 @@ app-composer-install:
 app-composer-update:
 	docker compose run --rm app-php-cli composer update
 
-app-wait-db:
-	docker compose run --rm app-php-cli wait-for-it app-postgres:5432 -t 30
-
-app-migrations:
-	docker compose run --rm app-php-cli composer app migrations:migrate -- --no-interaction
-
-app-fixtures:
-	docker compose run --rm app-php-cli composer app fixtures:load
-
-app-check: app-validate-schema app-lint app-analyze app-test
-
-app-validate-schema:
-	docker compose run --rm app-php-cli composer app orm:validate-schema
-
-app-lint:
-	docker compose run --rm app-php-cli composer lint
-	docker compose run --rm app-php-cli composer php-cs-fixer fix -- --dry-run --diff
-
-app-lint-fix:
-	docker compose run --rm app-php-cli composer php-cs-fixer fix
-
-app-analyze:
-	docker compose run --rm app-php-cli composer psalm -- --no-diff
-
-app-test:
-	docker compose run --rm app-php-cli composer test
+app-ready:
+	docker run --rm --volume ${PWD}/app:/app --workdir /app alpine touch .ready
 
 build: build-app
 
@@ -75,25 +52,19 @@ build-app:
 try-build:
 	REGISTRY=localhost IMAGE_TAG=0 make build
 
-testing-build: testing-build-testing-app-php-cli testing-build-benchmark
-
-testing-build-testing-app-php-cli:
-	docker --log-level=debug build --pull --file=app/docker/testing/php-cli/Dockerfile --tag=${REGISTRY}/testing-app-php-cli:${IMAGE_TAG} app
+testing-build: testing-build-benchmark
 
 testing-build-benchmark:
 	docker --log-level=debug build --pull --file=benchmark/Dockerfile --tag=${REGISTRY}/benchmark:${IMAGE_TAG} benchmark
 
 testing-init:
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml up -d
-	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm app-php-cli wait-for-it app-postgres:5432 -t 60
-	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm app-php-cli php bin/app.php migrations:migrate --no-interaction
-	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm testing-app-php-cli php bin/app.php fixtures:load --no-interaction
-	sleep 5
+	sleep 10
 
 testing-benchmark:
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 1 -d -r http://localhost/
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 100 -c 100 -d -r http://localhost/
-	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 100 -c 100 -d -r http://localhost/v1/blog
+	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 100 -c 100 -d -r http://localhost/en/blog/
 
 testing-down-clear:
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml down -v --remove-orphans
