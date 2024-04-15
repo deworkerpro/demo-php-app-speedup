@@ -14,10 +14,10 @@ docker-up:
 	docker compose up -d
 
 docker-down:
-	docker compose down --remove-orphans
+	docker compose down --remove-orphans --timeout 1
 
 docker-down-clear:
-	docker compose down --volumes --remove-orphans
+	docker compose down --volumes --remove-orphans --timeout 1
 
 docker-pull:
 	docker compose pull
@@ -87,7 +87,7 @@ testing-benchmark:
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 100 -c 100 -d -r http://localhost/v1/blog
 
 testing-down-clear:
-	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml down --volumes --remove-orphans
+	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml down --volumes --remove-orphans --timeout 1
 
 try-testing: try-testing-down-clear try-build try-testing-build try-testing-init
 
