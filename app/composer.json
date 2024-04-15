@@ -14,14 +14,18 @@
     "require": {
         "php": "^8.3",
         "ext-mbstring": "^8.3",
+        "ext-pcntl": "*",
+        "amphp/http-server": "^3.3",
+        "amphp/http-server-router": "^2.0",
+        "amphp/log": "^2.0",
+        "amphp/postgres": "^2.0",
         "laminas/laminas-config-aggregator": "^1.14",
         "monolog/monolog": "^3.6",
         "php-di/php-di": "^7.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.16",
-        "overtrue/phplint": "^9.0",
-        "vimeo/psalm": "^5.9"
+        "overtrue/phplint": "^9.0"
     },
     "replace": {
         "symfony/polyfill-mbstring": "*",
@@ -45,7 +49,6 @@
     },
     "scripts": {
         "lint": "phplint",
-        "php-cs-fixer": "php-cs-fixer --config=.php-cs-fixer.php",
-        "psalm": "psalm --config=psalm.xml"
+        "php-cs-fixer": "php-cs-fixer --config=.php-cs-fixer.php"
     }
 }
