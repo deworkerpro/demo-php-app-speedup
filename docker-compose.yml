@@ -1,0 +1,85 @@
+services:
+    traefik:
+        image: traefik:2.11
+        command:
+            --providers.docker=true
+            --providers.docker.exposedByDefault=false
+            --entryPoints.http.address=:80
+        ports:
+            - "80:80"
+        networks:
+            - traefik-public
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=traefik-public
+
+    app:
+        build:
+            context: app/docker
+            dockerfile: development/php/Dockerfile
+        networks:
+            - traefik-public
+            - default
+        environment:
+            APP_ENV: dev
+            DB_HOST: app-postgres
+            DB_USER: app
+            DB_PASSWORD_FILE: /run/secrets/app_db_password
+            DB_NAME: app
+        volumes:
+            - ./app:/app
+        secrets:
+            - app_db_password
+        command: sh -c "until [ -f .ready ] ; do sleep 1 ; done && php server/index.php"
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=traefik-public
+            - traefik.http.routers.app.rule=Host(`localhost`)
+            - traefik.http.routers.app.entryPoints=http
+            - traefik.http.services.app.loadBalancer.server.port=80
+
+    app-php-cli:
+        build:
+            context: app/docker
+            dockerfile: development/php-cli/Dockerfile
+        environment:
+            APP_ENV: dev
+            DB_HOST: app-postgres
+            DB_USER: app
+            DB_PASSWORD_FILE: /run/secrets/app_db_password
+            DB_NAME: app
+        volumes:
+            - ./app:/app
+        secrets:
+            - app_db_password
+
+    app-postgres:
+        image: postgres:16.2-alpine
+        environment:
+            POSTGRES_USER: app
+            POSTGRES_PASSWORD_FILE: /run/secrets/app_db_password
+            POSTGRES_DB: app
+        secrets:
+            - app_db_password
+        volumes:
+            - app-postgres:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+
+    benchmark:
+        build:
+            context: benchmark
+        network_mode: service:traefik
+
+secrets:
+    app_db_password:
+        file: ./app/docker/development/secrets/app_db_password
+
+volumes:
+    app-postgres:
+
+networks:
+    traefik-public:
+        name: traefik-public

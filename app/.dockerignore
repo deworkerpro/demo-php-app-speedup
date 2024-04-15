@@ -1,0 +1,4 @@
+/.idea
+/vendor
+/var/cache/*
+/.ready
