@@ -14,10 +14,10 @@ docker-up:
 	docker compose up -d
 
 docker-down:
-	docker compose down --remove-orphans
+	docker compose down --remove-orphans --timeout 1
 
 docker-down-clear:
-	docker compose down --volumes --remove-orphans
+	docker compose down --volumes --remove-orphans --timeout 1
 
 docker-pull:
 	docker compose pull
@@ -40,10 +40,10 @@ app-composer-update:
 	docker compose run --rm app-php-cli composer update
 
 app-wait-db:
-	docker compose run --rm app-php-cli wait-for-it app-postgres:5432 -t 30
+	docker compose run --rm app-php-cli wait-for-it app-mysql:3306 -t 30
 
 app-import-db:
-	docker compose exec -T app-postgres sh -c "PGPASSWORD=secret psql --username app app" < app/db/dump.sql
+	docker compose exec -T app-mysql mariadb -uapp -psecret app < app/db/dump.sql
 
 app-ready:
 	docker run --rm --volume ${PWD}/app:/app --workdir /app alpine touch .ready
@@ -76,8 +76,8 @@ testing-build-benchmark:
 
 testing-init:
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml up -d
-	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm app-php-cli wait-for-it app-postgres:5432 -t 60
-	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml exec -T app-postgres sh -c "PGPASSWORD=secret psql --username app app" < app/db/dump.sql
+	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm app-php-cli wait-for-it app-mysql:3306 -t 60
+	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml exec -T app-mysql mariadb -uapp -psecret app < app/db/dump.sql
 	sleep 5
 
 testing-benchmark:
@@ -87,7 +87,7 @@ testing-benchmark:
 	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml run --rm benchmark ab -n 100 -c 100 -d -r http://localhost/v1/blog
 
 testing-down-clear:
-	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml down --volumes --remove-orphans
+	COMPOSE_PROJECT_NAME=testing docker compose -f docker-compose-testing.yml down --volumes --remove-orphans --timeout 1
 
 try-testing: try-testing-down-clear try-build try-testing-build try-testing-init
 

@@ -7,6 +7,10 @@
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
     cacheDirectory="./var/cache/.psalm"
 >
+    <plugins>
+        <pluginClass class="Lctrs\PsalmPsrContainerPlugin\Plugin"/>
+    </plugins>
+
     <projectFiles>
         <directory name="config" />
         <directory name="server" />

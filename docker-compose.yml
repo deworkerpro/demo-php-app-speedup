@@ -24,7 +24,7 @@ services:
             - default
         environment:
             APP_ENV: dev
-            DB_HOST: app-postgres
+            DB_HOST: app-mysql
             DB_USER: app
             DB_PASSWORD_FILE: /run/secrets/app_db_password
             DB_NAME: app
@@ -46,7 +46,7 @@ services:
             dockerfile: development/php-cli/Dockerfile
         environment:
             APP_ENV: dev
-            DB_HOST: app-postgres
+            DB_HOST: app-mysql
             DB_USER: app
             DB_PASSWORD_FILE: /run/secrets/app_db_password
             DB_NAME: app
@@ -55,18 +55,20 @@ services:
         secrets:
             - app_db_password
 
-    app-postgres:
-        image: postgres:16.2-alpine
+    app-mysql:
+        image: mariadb:11
         environment:
-            POSTGRES_USER: app
-            POSTGRES_PASSWORD_FILE: /run/secrets/app_db_password
-            POSTGRES_DB: app
+            MYSQL_ROOT_PASSWORD_FILE: /run/secrets/app_db_root_password
+            MYSQL_USER: app
+            MYSQL_PASSWORD_FILE: /run/secrets/app_db_password
+            MYSQL_DATABASE: app
         secrets:
+            - app_db_root_password
             - app_db_password
         volumes:
-            - app-postgres:/var/lib/postgresql/data
+            - app-mysql:/var/lib/mysql
         ports:
-            - "5432:5432"
+            - "3306:3306"
 
     benchmark:
         build:
@@ -74,11 +76,13 @@ services:
         network_mode: service:traefik
 
 secrets:
+    app_db_root_password:
+        file: ./app/docker/development/secrets/app_db_root_password
     app_db_password:
         file: ./app/docker/development/secrets/app_db_password
 
 volumes:
-    app-postgres:
+    app-mysql:
 
 networks:
     traefik-public:

@@ -10,7 +10,7 @@ ENV COMPOSER_ALLOW_SUPERUSER 1
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
-CMD ["php", "server/index.php"]
+ENTRYPOINT ["php", "server/index.php"]
 
 RUN addgroup -g 1000 app && adduser -u 1000 -G app -s /bin/sh -D app
 
@@ -22,3 +22,5 @@ RUN composer install --no-dev --prefer-dist --no-progress --no-suggest --optimiz
     && rm -rf /root/.composer/cache
 
 COPY ./ ./
+
+HEALTHCHECK --interval=5s --timeout=3s --start-period=5s CMD curl --fail http://127.0.0.1:80/health || exit 1

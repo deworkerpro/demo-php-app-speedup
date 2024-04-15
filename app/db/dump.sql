@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS blog_posts;
 CREATE TABLE blog_posts
 (
     id               UUID         NOT NULL,
-    date             TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+    date             DATETIME     NOT NULL,
     slug             VARCHAR(255) NOT NULL,
     content_title    VARCHAR(255) NOT NULL,
     content_short    TEXT         DEFAULT NULL,
