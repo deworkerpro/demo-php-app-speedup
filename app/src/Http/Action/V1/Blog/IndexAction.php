@@ -7,6 +7,7 @@ namespace App\Http\Action\V1\Blog;
 use App\Blog\Query\PostFetcher;
 use App\Pagination;
 use DateTimeImmutable;
+use OpenSwoole\Core\Coroutine\Pool\ClientPool;
 use OpenSwoole\Http\Request;
 use OpenSwoole\Http\Response;
 
@@ -15,7 +16,8 @@ final readonly class IndexAction
     private const int PER_PAGE = 20;
 
     public function __construct(
-        private PostFetcher $posts
+        private PostFetcher $posts,
+        private ClientPool $connections
     ) {}
 
     public function __invoke(Request $request, Response $response): void
@@ -31,9 +33,11 @@ final readonly class IndexAction
         $page = (int)($params['page'] ?? '') ?: 1;
         $perPage = min((int)($params['per_page'] ?? '') ?: self::PER_PAGE, self::PER_PAGE);
 
-        $pager = new Pagination($this->posts->count(), $page, $perPage);
+        $conn = $this->connections->get();
 
-        $posts = $this->posts->all($pager->getOffset(), $pager->getLimit());
+        $pager = new Pagination($this->posts->count($conn), $page, $perPage);
+
+        $posts = $this->posts->all($conn, $pager->getOffset(), $pager->getLimit());
 
         $response->header('content-type', 'application/json');
         $response->end(json_encode([

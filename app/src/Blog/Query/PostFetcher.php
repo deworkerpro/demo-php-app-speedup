@@ -4,17 +4,13 @@ declare(strict_types=1);
 
 namespace App\Blog\Query;
 
-use OpenSwoole\Core\Coroutine\Pool\ClientPool;
+use OpenSwoole\Coroutine\PostgreSQL;
 
 final readonly class PostFetcher
 {
-    public function __construct(
-        private ClientPool $connections
-    ) {}
-
-    public function count(): int
+    public function count(PostgreSQL $connection): int
     {
-        $result = $this->connections->get()->query('SELECT COUNT(p.id) as c FROM blog_posts p');
+        $result = $connection->query('SELECT COUNT(p.id) as c FROM blog_posts p');
         $row = $result->fetchRow();
 
         return $row[0];
@@ -23,9 +19,9 @@ final readonly class PostFetcher
     /**
      * @return array[]
      */
-    public function all(int $offset, int $limit): array
+    public function all(PostgreSQL $connection, int $offset, int $limit): array
     {
-        $stmt = $this->connections->get()->query(
+        $stmt = $connection->query(
             <<<SQL
                     SELECT
                         p.slug,
